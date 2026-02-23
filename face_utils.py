@@ -3,52 +3,7 @@ import numpy as np
 import cv2
 from deepface import DeepFace
 
-import os
-import smtplib
-import requests
-from email.mime.text import MIMEText
 
-def send_email_otp(smtp_host, smtp_port, smtp_user, smtp_pass, from_email, to_email, otp, purpose):
-    provider = os.getenv("OTP_PROVIDER", "smtp").lower()
-
-    subject = f"SecureVote OTP ({purpose})"
-    body = f"Your SecureVote OTP for {purpose} is: {otp}\n\nThis OTP expires in 5 minutes."
-
-    # ✅ Resend (HTTPS) — works on Render free
-    if provider == "resend":
-        api_key = os.getenv("RESEND_API_KEY")
-        if not api_key:
-            raise RuntimeError("RESEND_API_KEY missing in environment")
-
-        base_url = "https://api.resend.com"
-        r = requests.post(
-            f"{base_url}/emails",
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-            },
-            json={
-                "from": from_email or "onboarding@resend.dev",
-                "to": [to_email],
-                "subject": subject,
-                "text": body,
-            },
-            timeout=20,
-        )
-        if r.status_code >= 400:
-            raise RuntimeError(f"Resend error {r.status_code}: {r.text}")
-        return
-
-    # ✅ SMTP (local / paid hosting)
-    msg = MIMEText(body)
-    msg["Subject"] = subject
-    msg["From"] = from_email
-    msg["To"] = to_email
-
-    with smtplib.SMTP(smtp_host, int(smtp_port)) as server:
-        server.starttls()
-        server.login(smtp_user, smtp_pass)
-        server.sendmail(from_email, [to_email], msg.as_string())
 def b64_to_bgr(base64_data: str) -> np.ndarray:
     # base64_data like "data:image/jpeg;base64,...."
     if "," in base64_data:
