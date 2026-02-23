@@ -15,6 +15,7 @@ from flask import (
     Flask, render_template, request, redirect, url_for,
     session, flash, jsonify, abort
 )
+
 from pyngrok import ngrok
 from db import init_db, get_db
 from otp_utils import generate_otp, otp_expiry, utc_now, send_email_otp
