@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h4 class="fw-bold mb-0">{{ election.title }}</h4>
+    <div class="text-muted small">Start: {{ election.start_at }} | End: {{ election.end_at }}</div>
+  </div>
+  <form method="POST" action="/admin/election/{{ election.id }}/toggle">
+    <button class="btn btn-sm {{ 'btn-danger' if election.is_active==1 else 'btn-success' }}">
+      {{ 'Disable' if election.is_active==1 else 'Enable' }}
+    </button>
+  </form>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="card rounded-4 shadow-sm">
+      <div class="card-body">
+        <div class="text-muted small">Total Votes</div>
+        <div class="fs-3 fw-bold">{{ total_votes }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card rounded-4 shadow-sm">
+      <div class="card-body">
+        <div class="text-muted small">Eligible Total</div>
+        <div class="fs-3 fw-bold">{{ eligible_total }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card rounded-4 shadow-sm">
+      <div class="card-body">
+        <div class="text-muted small">Turnout %</div>
+        <div class="fs-3 fw-bold">{{ '%.2f'|format(turnout) }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="my-4">
+
+<h5 class="fw-bold">Candidates</h5>
+<ul class="list-group rounded-4 shadow-sm">
+  {% for c in candidates %}
+    <li class="list-group-item d-flex justify-content-between">
+      <span>{{ c.name }}</span>
+      <span class="badge text-bg-dark">ID: {{ c.id }}</span>
+    </li>
+  {% endfor %}
+</ul>
+
+<div class="d-flex gap-2 mt-4">
+  <a class="btn btn-dark" href="/admin/results/{{ election.id }}">View Results</a>
+  <a class="btn btn-outline-dark" href="/admin/dashboard">Back</a>
+</div>
+
+{% endblock %}

@@ -1,0 +1,124 @@
+/* /* ============================
+   SecureVote Modern UI
+============================ */
+
+body {
+  background: linear-gradient(135deg, #0f172a, #111827);
+  color: #f1f5f9;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Navbar */
+.navbar {
+  backdrop-filter: blur(10px);
+}
+
+/* Cards */
+.card {
+  border: none;
+  border-radius: 18px;
+  background: #ffffff;
+  color: #0f172a;
+  transition: 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Buttons */
+.btn-primary {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border: none;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-dark {
+  background: #111827;
+}
+
+.btn-outline-dark {
+  border-color: #111827;
+  color: #111827;
+}
+
+.btn-outline-dark:hover {
+  background: #111827;
+  color: white;
+}
+
+/* Hero Section */
+.hero {
+  border-radius: 24px;
+  padding: 40px;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.3), rgba(16, 185, 129, 0.2));
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Camera Styling */
+.camera-wrap {
+  background: black;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+video {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+canvas {
+  display: none;
+}
+
+/* Status Text */
+#status {
+  font-weight: 500;
+}
+
+/* Pills */
+.pill {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+/* Tables */
+.table th {
+  font-weight: 600;
+}
+
+/* Alerts */
+.alert {
+  border-radius: 14px;
+}
+.navbar {
+  padding: 14px 0;
+  background: linear-gradient(90deg, #111827, #1f2937);
+}
+
+.navbar-brand img {
+  object-fit: cover;
+} 
+.btn-create {
+  background: linear-gradient(135deg, #ff9933, #138808);
+  color: white;
+  border: none;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 12px;
+  transition: 0.3s ease;
+}
+
+.btn-create:hover {
+  opacity: 0.9;
+  transform: scale(1.03);
+}

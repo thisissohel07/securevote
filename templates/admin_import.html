@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block content %}
+<h4 class="fw-bold mb-3">Import Eligible Voters (Excel)</h4>
+
+<div class="card rounded-4 shadow-sm">
+  <div class="card-body p-4">
+    <p class="text-muted mb-3">
+      Excel columns required: <b>voter_id</b>, <b>name</b>, <b>email</b> (phone optional)
+    </p>
+    <form method="POST" enctype="multipart/form-data">
+      <input class="form-control mb-3" type="file" name="file" accept=".xlsx,.xls" required>
+      <button class="btn btn-primary">Import</button>
+      <a class="btn btn-outline-dark" href="/admin/dashboard">Back</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

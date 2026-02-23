@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6 col-lg-5">
+    <div class="card rounded-4 shadow-sm">
+      <div class="card-body p-4">
+        <h4 class="fw-bold mb-1">Voter Registration</h4>
+        <p class="text-muted mb-4">Only eligible voters from the Excel list can register.</p>
+
+        <form method="POST">
+          <div class="mb-3">
+            <label class="form-label">Voter ID or ROLL NO </label>
+            <input class="form-control" name="voter_id" placeholder="e.g. 2XWJ1AXXXX" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Email (must match Voter list)</label>
+            <input class="form-control" name="email" type="email" placeholder="your@email.com" required />
+          </div>
+          <button class="btn btn-primary w-100">Send OTP</button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

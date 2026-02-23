@@ -1,0 +1,21 @@
+# Environment variables
+.env
+
+# Excel voter list
+students.xlsx
+
+# Database files
+secure.db
+securevote.db
+*.db
+
+# Python virtual environment
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# ngrok files
+ngrok.yml

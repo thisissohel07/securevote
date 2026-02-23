@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card rounded-4 shadow-sm">
+      <div class="card-body p-4">
+        <h4 class="fw-bold mb-1">{{ election.title }}</h4>
+        <p class="text-muted mb-3">Step 1: Request OTP → Step 2: Verify Face → Step 3: Submit Vote</p>
+
+        <form method="POST" action="/vote-request-otp/{{ election.id }}">
+          <button class="btn btn-outline-primary w-100 mb-3">Send OTP for Voting</button>
+        </form>
+
+        <hr>
+
+        <form method="POST" action="/submit-vote/{{ election.id }}">
+          <h6 class="fw-bold">Choose Candidate</h6>
+          {% for c in candidates %}
+            <div class="form-check my-2">
+              <input class="form-check-input" type="radio" name="candidate_id" id="c{{c.id}}" value="{{c.id}}" required>
+              <label class="form-check-label" for="c{{c.id}}">
+                {{ c.name }}
+              </label>
+            </div>
+          {% endfor %}
+
+          <button class="btn btn-dark w-100 mt-3">Submit Vote</button>
+          <p class="small text-muted mt-2 mb-0">
+            Note: Vote submission works only after OTP + Face verification is completed.
+          </p>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
