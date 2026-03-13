@@ -8,15 +8,19 @@
 # - Admin: login, dashboard, create election, manage/toggle, results, (optional) upload import page too
 
 import os
-from datetime import datetime
+from zoneinfo import ZoneInfo
+from datetime import datetime, timezone
 import pandas as pd
 from dotenv import load_dotenv
+
+# MUST be called before any os.getenv() calls
+load_dotenv()
+
 from flask import (
     Flask, render_template, request, redirect, url_for,
     session, flash, jsonify, abort
 )
 
-from pyngrok import ngrok
 from db import init_db, get_db
 from otp_utils import generate_otp, otp_expiry, utc_now, send_email_otp
 from face_utils import (
@@ -24,8 +28,6 @@ from face_utils import (
     cosine_distance, emb_to_text, text_to_emb
 )
 
-load_dotenv()
-from zoneinfo import ZoneInfo
 IST = ZoneInfo("Asia/Kolkata")
 APP_SECRET = os.getenv("FLASK_SECRET", "dev-secret")
 ADMIN_USER = os.getenv("ADMIN_USER", "admin")
@@ -39,6 +41,9 @@ FROM_EMAIL = os.getenv("FROM_EMAIL")
 
 FACE_MODEL = os.getenv("FACE_MODEL", "Facenet512")
 DUP_FACE_THRESHOLD = float(os.getenv("DUP_FACE_THRESHOLD", "0.35"))
+
+RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+RESEND_FROM = os.getenv("RESEND_FROM", "onboarding@resend.dev")
 
 # Ensure static path works (prevents /static 404 in some setups)
 app = Flask(__name__, static_folder="static", static_url_path="/static")
@@ -154,7 +159,10 @@ def verify_latest_otp(voter_id, purpose, code):
         return False, "OTP not found. Please request again."
 
     expires_at = datetime.fromisoformat(row["expires_at"])
-    if datetime.utcnow() > expires_at:
+    # Ensure both datetimes are timezone-aware for comparison
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if datetime.now(timezone.utc) > expires_at:
         conn.close()
         return False, "OTP expired. Please request again."
 
@@ -186,8 +194,15 @@ def check_duplicate_face(new_emb):
 
     return False, None, None
 
-def smtp_ready():
+def email_ready():
+    """Returns True if Resend API key OR full SMTP config is available."""
+    if RESEND_API_KEY:
+        return True
     return all([SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, FROM_EMAIL])
+
+# Keep smtp_ready as alias for backward compat
+def smtp_ready():
+    return email_ready()
 
 
 # ---------------------------
@@ -203,6 +218,10 @@ def logout():
     session.pop("voter_id", None)
     flash("Logged out.", "info")
     return redirect(url_for("index"))
+
+@app.route("/favicon.ico")
+def favicon():
+    return app.send_static_file("favicon.ico")
 
 
 # ---------------------------
@@ -233,8 +252,8 @@ def register():
         flash("Email does not match eligible voter list.", "danger")
         return redirect(url_for("register"))
 
-    if not smtp_ready():
-        flash("SMTP is not configured. Fill SMTP settings in .env", "danger")
+    if not email_ready():
+        flash("Email service not configured. Add RESEND_API_KEY or SMTP settings in .env", "danger")
         return redirect(url_for("register"))
 
     code = generate_otp()
@@ -280,8 +299,8 @@ def login():
         flash("You are not registered yet. Please register first.", "warning")
         return redirect(url_for("register"))
 
-    if not smtp_ready():
-        flash("SMTP is not configured. Fill SMTP settings in .env", "danger")
+    if not email_ready():
+        flash("Email service not configured. Add RESEND_API_KEY or SMTP settings in .env", "danger")
         return redirect(url_for("login"))
 
     code = generate_otp()
@@ -561,8 +580,8 @@ def vote_request_otp(election_id):
     if not erow:
         abort(403)
 
-    if not smtp_ready():
-        flash("SMTP is not configured. Fill SMTP settings in .env", "danger")
+    if not email_ready():
+        flash("Email service not configured. Add RESEND_API_KEY or SMTP settings in .env", "danger")
         return redirect(url_for("vote", election_id=election_id))
 
     code = generate_otp()
@@ -886,14 +905,16 @@ if __name__ == "__main__":
 
     # OPTIONAL: create HTTPS public link for mobile camera using ngrok
     try:
+        import pyngrok
         from pyngrok import ngrok
         public_url = ngrok.connect(port, "http")
-        print("\n✅ SecureVote Public HTTPS URL (Mobile Camera Works):", public_url)
+        print("[NGROK] Public HTTPS URL:", public_url)
+    except ImportError:
+        print("[INFO] pyngrok not installed - skipping ngrok tunnel.")
     except Exception as e:
-        print("\n⚠ Ngrok not started:", e)
-        print("Install: pip install pyngrok")
+        print("[NGROK] Not started:", e)
 
-    print(f"✅ Local Desktop URL: http://127.0.0.1:{port}")
-    print(f"✅ LAN URL (Same WiFi): http://<your-ip>:{port}\n")
+    print(f"[OK] Local Desktop URL: http://127.0.0.1:{port}")
+    print(f"[OK] LAN URL (Same WiFi): http://<your-ip>:{port}\n")
 
     app.run(host=host, port=port, debug=True)
