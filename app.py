@@ -33,11 +33,6 @@ APP_SECRET = os.getenv("FLASK_SECRET", "dev-secret")
 ADMIN_USER = os.getenv("ADMIN_USER", "admin")
 ADMIN_PASS = os.getenv("ADMIN_PASS", "admin123")
 
-SMTP_HOST = os.getenv("SMTP_HOST")
-SMTP_PORT = os.getenv("SMTP_PORT", "587")
-SMTP_USER = os.getenv("SMTP_USER")
-SMTP_PASS = os.getenv("SMTP_PASS")
-FROM_EMAIL = os.getenv("FROM_EMAIL")
 
 FACE_MODEL = os.getenv("FACE_MODEL", "Facenet512")
 DUP_FACE_THRESHOLD = float(os.getenv("DUP_FACE_THRESHOLD", "0.35"))
@@ -195,10 +190,8 @@ def check_duplicate_face(new_emb):
     return False, None, None
 
 def email_ready():
-    """Returns True if Resend API key OR full SMTP config is available."""
-    if RESEND_API_KEY:
-        return True
-    return all([SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, FROM_EMAIL])
+    """Returns True if Resend API key is available."""
+    return bool(RESEND_API_KEY)
 
 # Keep smtp_ready as alias for backward compat
 def smtp_ready():
@@ -258,7 +251,7 @@ def register():
 
     code = generate_otp()
     try:
-        send_email_otp(SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, FROM_EMAIL, email, code, "register")
+        send_email_otp(email, code, "register")
     except Exception as e:
         flash(f"Failed to send OTP email: {e}", "danger")
         return redirect(url_for("register"))
@@ -305,7 +298,7 @@ def login():
 
     code = generate_otp()
     try:
-        send_email_otp(SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, FROM_EMAIL, erow["email"], code, "login")
+        send_email_otp(erow["email"], code, "login")
     except Exception as e:
         flash(f"Failed to send OTP email: {e}", "danger")
         return redirect(url_for("login"))
@@ -586,7 +579,7 @@ def vote_request_otp(election_id):
 
     code = generate_otp()
     try:
-        send_email_otp(SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, FROM_EMAIL, erow["email"], code, "vote")
+        send_email_otp(erow["email"], code, "vote")
     except Exception as e:
         flash(f"Failed to send OTP email: {e}", "danger")
         return redirect(url_for("vote", election_id=election_id))

@@ -1,8 +1,6 @@
 import os
 import random
-import smtplib
 import requests
-from email.mime.text import MIMEText
 from datetime import datetime, timedelta, timezone
 
 
@@ -18,14 +16,16 @@ def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def send_email_otp(host, port, user, password, from_email, to_email, code, purpose):
+def send_email_otp(to_email, code, purpose):
     """
-    Sends OTP via Resend API if RESEND_API_KEY is set,
-    otherwise falls back to SMTP.
+    Sends OTP via Resend API.
     """
     debug_mode = os.getenv("DEBUG_OTP", "false").lower() == "true"
     resend_api_key = os.getenv("RESEND_API_KEY")
     resend_from = os.getenv("RESEND_FROM", "onboarding@resend.dev")
+
+    if not resend_api_key:
+        raise Exception("RESEND_API_KEY is not configured.")
 
     subject = f"SecureVote OTP for {purpose.upper()}"
     body_text = (
@@ -48,51 +48,28 @@ def send_email_otp(host, port, user, password, from_email, to_email, code, purpo
         print(f"--- [DEBUG OTP] Email: {to_email}, Code: {code} ---")
         return
 
-    # --- Try Resend API first ---
-    if resend_api_key:
-        try:
-            response = requests.post(
-                "https://api.resend.com/emails",
-                headers={
-                    "Authorization": f"Bearer {resend_api_key}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "from": resend_from,
-                    "to": [to_email],
-                    "subject": subject,
-                    "html": body_html,
-                    "text": body_text,
-                },
-                timeout=10,
-            )
-            if response.status_code in (200, 201):
-                print(f"[RESEND] OTP sent successfully to {to_email}")
-                return
-            else:
-                print(f"[RESEND ERROR] Status {response.status_code}: {response.text}")
-                # Fall through to SMTP
-        except Exception as e:
-            print(f"[RESEND ERROR] {e} — falling back to SMTP")
-
-    # --- Fallback: SMTP ---
     try:
-        msg = MIMEText(body_text)
-        msg["Subject"] = subject
-        msg["From"] = from_email
-        msg["To"] = to_email
-
-        port_num = int(port)
-        if port_num == 465:
-            server = smtplib.SMTP_SSL(host, port_num, timeout=10)
+        response = requests.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {resend_api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "from": resend_from,
+                "to": [to_email],
+                "subject": subject,
+                "html": body_html,
+                "text": body_text,
+            },
+            timeout=10,
+        )
+        if response.status_code in (200, 201):
+            print(f"[RESEND] OTP sent successfully to {to_email}")
+            return
         else:
-            server = smtplib.SMTP(host, port_num, timeout=10)
-            server.starttls()
-
-        server.login(user, password)
-        server.sendmail(from_email, [to_email], msg.as_string())
-        server.quit()
-        print(f"[SMTP] OTP sent successfully to {to_email}")
+            print(f"[RESEND ERROR] Status {response.status_code}: {response.text}")
+            raise Exception(f"Resend API error: {response.text}")
     except Exception as e:
-        print(f"[SMTP ERROR] Failed to send email to {to_email}: {e}")
+        print(f"[RESEND ERROR] {e}")
         raise Exception(f"Email delivery failed: {e}")
