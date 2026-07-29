@@ -191,7 +191,7 @@ def check_duplicate_face(new_emb):
 
 def email_ready():
     """Returns True if Resend API key is available."""
-    return bool(RESEND_API_KEY)
+    return bool(os.getenv("RESEND_API_KEY"))
 
 # Keep smtp_ready as alias for backward compat
 def smtp_ready():
@@ -898,9 +898,10 @@ if __name__ == "__main__":
 
     # OPTIONAL: create HTTPS public link for mobile camera using ngrok
     try:
+        # pyrefly: ignore [missing-import]
         import pyngrok
         from pyngrok import ngrok
-        public_url = ngrok.connect(port, "http")
+        public_url = ngrok.connect(port)
         print("[NGROK] Public HTTPS URL:", public_url)
     except ImportError:
         print("[INFO] pyngrok not installed - skipping ngrok tunnel.")
