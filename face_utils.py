@@ -1,4 +1,5 @@
 import json
+from typing import List
 import numpy as np
 import cv2
 from deepface import DeepFace
@@ -14,7 +15,7 @@ def b64_to_bgr(base64_data: str) -> np.ndarray:
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     return img
 
-def get_embedding_from_bgr(bgr_img: np.ndarray, model_name="Facenet512") -> list[float]:
+def get_embedding_from_bgr(bgr_img: np.ndarray, model_name="Facenet512") -> List[float]:
     # DeepFace expects RGB in many cases; convert.
     rgb = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2RGB)
 
@@ -27,15 +28,15 @@ def get_embedding_from_bgr(bgr_img: np.ndarray, model_name="Facenet512") -> list
     emb = reps[0]["embedding"]
     return emb
 
-def cosine_distance(a: list[float], b: list[float]) -> float:
+def cosine_distance(a: List[float], b: List[float]) -> float:
     va = np.array(a, dtype=np.float32)
     vb = np.array(b, dtype=np.float32)
     denom = (np.linalg.norm(va) * np.linalg.norm(vb)) + 1e-9
     sim = float(np.dot(va, vb) / denom)
     return 1.0 - sim
 
-def emb_to_text(emb: list[float]) -> str:
+def emb_to_text(emb: List[float]) -> str:
     return json.dumps(emb)
 
-def text_to_emb(text: str) -> list[float]:
+def text_to_emb(text: str) -> List[float]:
     return json.loads(text)

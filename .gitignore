@@ -19,3 +19,6 @@ __pycache__/
 
 # ngrok files
 ngrok.yml
+
+# Logs
+app.log

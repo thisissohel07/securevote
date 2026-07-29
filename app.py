@@ -18,7 +18,7 @@ load_dotenv()
 
 from flask import (
     Flask, render_template, request, redirect, url_for,
-    session, flash, jsonify, abort
+    session, flash, jsonify, abort, send_from_directory
 )
 
 from db import init_db, get_db
@@ -214,7 +214,7 @@ def logout():
 
 @app.route("/favicon.ico")
 def favicon():
-    return app.send_static_file("favicon.ico")
+    return send_from_directory(app.static_folder, "favicon.ico")
 
 
 # ---------------------------
