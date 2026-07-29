@@ -19,14 +19,25 @@ def get_embedding_from_bgr(bgr_img: np.ndarray, model_name="Facenet512") -> List
     # DeepFace expects RGB in many cases; convert.
     rgb = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2RGB)
 
-    reps = DeepFace.represent(
-        img_path=rgb,
-        model_name=model_name,
-        enforce_detection=True
-    )
-    # DeepFace returns list of dicts
-    emb = reps[0]["embedding"]
-    return emb
+    last_error = None
+    # Try standard opencv detector first, then fallback backends if detector fails or cv2 is missing attributes
+    for backend in ["opencv", "ssd", "opencv", "skip"]:
+        try:
+            reps = DeepFace.represent(
+                img_path=rgb,
+                model_name=model_name,
+                detector_backend=backend,
+                enforce_detection=True if backend != "skip" else False
+            )
+            if reps and len(reps) > 0:
+                return reps[0]["embedding"]
+        except Exception as e:
+            last_error = e
+            continue
+
+    if last_error:
+        raise last_error
+    raise Exception("Face detection failed.")
 
 def cosine_distance(a: List[float], b: List[float]) -> float:
     va = np.array(a, dtype=np.float32)
