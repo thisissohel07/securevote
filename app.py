@@ -14,7 +14,7 @@ import pandas as pd
 from dotenv import load_dotenv
 
 # MUST be called before any os.getenv() calls
-load_dotenv()
+load_dotenv(override=True)
 
 from flask import (
     Flask, render_template, request, redirect, url_for,

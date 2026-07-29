@@ -2,6 +2,7 @@ import os
 import random
 import requests
 from datetime import datetime, timedelta, timezone
+from dotenv import load_dotenv
 
 
 def generate_otp() -> str:
@@ -20,6 +21,7 @@ def send_email_otp(to_email, code, purpose):
     """
     Sends OTP via Resend API.
     """
+    load_dotenv(override=True)
     debug_mode = os.getenv("DEBUG_OTP", "false").lower() == "true"
     resend_api_key = os.getenv("RESEND_API_KEY")
     resend_from = os.getenv("RESEND_FROM", "onboarding@resend.dev")
